@@ -1,5 +1,5 @@
 ---
-title: "Self-reported life satisfaction, 2011 to 2022"
+title: "Share of people who say they are happy, 1993 to 2022"
 output: 
   html_document:
     theme: united
@@ -19,29 +19,32 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 # Load packages 
 if(!require(pacman)) install.packages("pacman")
-pacman::p_load(plotly, tidyverse, reactable, here)
+pacman::p_load(plotly, tidyverse, reactable, here,janitor)
 ```
 
 ```{r}
 ## Import data
-cantril <- 
-  read_csv(here("data/happiness-cantril-ladder.csv")) %>% 
-  rename(Country = Entity)
+happy_data <- 
+  read_csv(here("data/happy_people.csv")) %>%
+  clean_names(case = "snake") %>% 
+  rename("Country/area" = entity,
+         happy_aggregate = happiness_happy_aggregate)
+print(happy_data)
 ```
 
-“Please imagine a ladder, with steps numbered from 0 at the bottom to 10 at the top. The top of the ladder represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. On which step of the ladder would you say you personally feel you stand at this time?”
+Share of people who respond they are "very happy" or "rather happy" to the question "Taking all things together, would you say you are … ?"
 
 # {.tabset}
 
 ## 🔢 Table
 
 ```{r}
-cantril %>% 
-  filter(Year %in% c(2011, 2022)) %>% 
-  pivot_wider(names_from = Year, values_from = `Cantril ladder score`, id_cols = Country) %>% 
-  select(Country, `2011`, `2022`) %>% 
-  mutate(`Absolute change` = round(`2022` - `2011`, 3)) %>% 
-  mutate(`Relative change` = (`2022` - `2011`) / `2011`) %>% 
+happy_data %>% 
+  filter(year %in% c(1993, 2022)) %>% 
+  pivot_wider(names_from = year, values_from = `happy_aggregate`, id_cols = "Country/area") %>% 
+  select("Country/area", `1993`, `2022`) %>% 
+  mutate(`Absolute change` = round(`2022` - `1993`, 3)) %>% 
+  mutate(`Relative change` = (`2022` - `1993`) / `1993`) %>% 
   reactable(
     columns = list(`Relative change` = colDef(format = colFormat(percent = TRUE, digits = 1))) 
   )
@@ -50,15 +53,15 @@ cantril %>%
 ## 🌎 Map
 
 ```{r}
-cantril %>% 
-  mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
+happy_data %>% 
+  mutate(`happy_aggregate` = round(`happy_aggregate`, 2)) %>%
   plot_geo(width = 940) %>% 
   add_trace(
-    z = ~`Cantril ladder score`,
-    color = ~`Cantril ladder score`,
-    locations = ~Code,
-    text = ~Country,
-    frame = ~Year, colors = "YlGn"
+    z = ~`happy_aggregate`,
+    color = ~`happy_aggregate`,
+    locations = ~code,
+    text = ~"Country/area",
+    frame = ~year, colors = "YlGn"
   ) %>% 
   colorbar(title = NULL)
 ```
@@ -67,73 +70,28 @@ cantril %>%
 ## 📈 Chart
 
 ```{r}
-# simple line chart of the data, for five countries on different continents (ggplot, piped into ggplotly)
+# simple line chart of the data, for eight countries on different continents (ggplot, piped into ggplotly)
 
-cantril_chart <- 
-  cantril %>% 
-  filter(Country %in% c("Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan")) %>%
-  ggplot(aes(x = Year, y = `Cantril ladder score`, color = Country)) +
+happy_data_chart <- 
+  happy_data %>% 
+  filter(`Country/area` %in% c("Sweden", "Brazil", "India", "Argentina", "Germany", "Zimbambwe", "Russia", "Georgia")) %>%
+  ggplot(aes(x = year, y = `happy_aggregate`, color = `Country/area`)) +
   geom_line() +
-  scale_y_continuous(limits = c(0, 10)) +
+  scale_y_continuous(limits = c(0, 100)) +
   labs(x = NULL,
        y = NULL, 
        color = NULL) +
   theme_minimal() 
 
-ggplotly(cantril_chart, width = 940)
+ggplotly(happy_data_chart, width = 940)
 ```
 
-## Advanced (Optional) 📈
-
-The following chart demonstrates that it is possible to approximate the functionality of our World in Data grapher for multicountry selection using R, specifically with the `crosstalk` package and a small amount of custom JavaScript. For more information on how to achieve this, see [this Stack Overflow question](https://stackoverflow.com/questions/67058016/how-to-set-default-values-in-filter-select-in-crosstalk-in-r-plotly).
-
-Note that this is not a required task, but rather a showcase of what can be achieved. The code for this will be shared when we provide the solutions for the exercise.
-
-```{r}
-pacman::p_load(crosstalk)
 
 
-# Crosstalk shared data
-shared_cantril <- highlight_key(cantril)
-
-cantril_plotly <- plot_ly(
-  shared_cantril, 
-  x = ~Year, 
-  y = ~`Cantril ladder score`, 
-  color = ~Country, 
-  type = "scatter", 
-  mode = "lines+markers"
-) %>%
-  layout(yaxis = list(range = c(0, 10)))
-
-
-country_filter <- filter_select(
-  "country_filter", 
-  "Select a country to examine", 
-  shared_cantril, 
-  ~Country, 
-  multiple = TRUE
-)
-
-bscols(
-  list(country_filter, cantril_plotly)
-)
-```
-
-<script>
-function filter_default() {
-  var default_countries = ["Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan"]; // Set default countries here
-  document.getElementById("country_filter").getElementsByClassName("selectized")[0].selectize.setValue(default_countries, false);
-}
-window.onload = filter_default;
-</script>
 
 
 # {.unlisted}
 
-Data source: World Happiness Report
+Data source: Integrated Values Surveys (2022) - Learn more about this data
 
-[OurWorldInData.org/happiness-and-life-satisfaction](https://ourworldindata.org/grapher/happiness-cantril-ladder) | CC BY
-
-
-
+[OurWorldInData.org/happiness-and-life-satisfaction](OurWorldInData.org/happiness-and-life-satisfaction) | CC BY
