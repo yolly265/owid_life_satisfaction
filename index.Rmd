@@ -1,0 +1,76 @@
+---
+title: "Self-reported life satisfaction, 2011 to 2022"
+output: 
+  html_document:
+    theme: united
+---
+
+```{r include = F}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Load packages 
+if(!require(pacman)) install.packages("pacman")
+pacman::p_load(plotly, tidyverse, reactable, here)
+```
+
+```{r}
+## Import data
+cantril <- 
+  read_csv(here("data/happiness-cantril-ladder.csv")) %>% 
+  rename(Country = Entity)
+```
+
+# {.tabset}
+
+## 🔢 Table
+
+```{r}
+# Your code here. You need to create a table with the following columns: Country, 2011, 2022, Absolute change, and Relative change. 
+# Use the filter function to select only the years 2011 and 2022. 
+# Use the pivot_wider function to create the columns for 2011 and 2022.
+# Use the mutate function to calculate the Absolute change and Relative change.
+# Use the reactable function to create the table.
+```
+
+## 🌎 Map
+
+```{r}
+# This code is already done for you. You don't need to change anything here. 
+# But if you change any of the column names, or something else with the data,
+# you may need to adjust the code below.
+cantril %>% 
+  mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
+  plot_geo(width = 940) %>% 
+  add_trace(
+    z = ~`Cantril ladder score`,
+    color = ~`Cantril ladder score`,
+    locations = ~Code,
+    text = ~Country,
+    frame = ~Year, colors = "YlGn"
+  ) %>% 
+  colorbar(title = NULL)
+```
+
+
+## 📈 Chart
+
+```{r}
+# Your code here. You need to create a line chart with the following features:
+# Select a few countries (e.g., Norway, Australia, Germany, Bolivia, Colombia, Bhutan).
+# Use ggplot to create the line chart.
+# Use geom_line to create the lines.
+# Use scale_y_continuous to set the y-axis limits.
+# Use labs to set the axis labels.
+# Use theme_minimal to set the theme.
+# Finally, use ggplotly to convert the ggplot chart to a plotly chart.
+```
+
+## Advanced (Optional) 📈
+
+```{r}
+# This code is optional. You can try to replicate the advanced chart from the example, but it's not required.
+# If you want to try, start by consulting the documentation below
+# This is pretty hard though, so don't worry if you can't get it to work.
+# https://rpubs.com/pcart/674445
+# https://stackoverflow.com/questions/67058016/how-to-set-default-values-in-filter-select-in-crosstalk-in-r-plotly
+```
