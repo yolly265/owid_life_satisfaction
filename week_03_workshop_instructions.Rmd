@@ -1,0 +1,31 @@
+---
+title: "R Masterclass Workshop Instructions"
+subtitle: "Interactive Plots and Web Publishing with RMarkdown"
+author: "The GRAPH Courses Team"
+output: prettydoc::html_pretty
+---
+
+## **Workshop Goal**
+
+Our goal is to use R to replicate [this set of interactive tables and charts](https://the-graph-courses.github.io/rmc_q2_2024_materials/week_03_workshop_solutions.html){target="_blank"} and publish to the web using GitHub Pages.
+
+This page is itself an attempt to replicate the [Our World in Data page](https://ourworldindata.org/grapher/happiness-cantril-ladder){target="_blank"} page on Life Satisfaction.
+
+## **Notes**
+
+* You don't need to replicate all the aesthetic features of the page. Focus on the core features: three tabs with a table, map, and chart.
+* Although you will collaborate with your peers during the workshop, you will submit your own work.
+
+## **Getting Started**
+
+1. Fork, then clone this repository: [https://github.com/the-graph-courses/owid_life_satisfaction](https://github.com/the-graph-courses/owid_life_satisfaction){target="_blank"}.
+2. Open the `index.Rmd` file. This file contains a skeleton for your assignment.
+3. Follow the instructions to complete each tab. The Map tab is already completed for you.
+
+## **Publishing to GitHub Pages**
+
+When finished, render your HTML and push your changes to GitHub and enable GitHub Pages for the repository. 
+
+## **Submission**
+
+Submit the link to the deployed website (the link will probably look something like this: `https://YOUR-USERNAME.github.io/NAME_OF_YOUR_REPO/`). Make sure it works before submitting.

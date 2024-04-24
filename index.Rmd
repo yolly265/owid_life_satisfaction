@@ -5,6 +5,15 @@ output:
     theme: united
 ---
 
+<img src="Our_World_in_Data_logo.png" style='width: 100px; position:absolute; top:0; right:0; padding:10px;'/>
+
+<link href='https://fonts.googleapis.com/css?family=Playfair Display' rel='stylesheet'>
+<style>
+h1 {
+    font-family: Playfair Display, Georgia, Times New Roman, "Liberation Serif", serif;
+}
+</style>
+
 ```{r include = F}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
@@ -20,24 +29,27 @@ cantril <-
   rename(Country = Entity)
 ```
 
+“Please imagine a ladder, with steps numbered from 0 at the bottom to 10 at the top. The top of the ladder represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. On which step of the ladder would you say you personally feel you stand at this time?”
+
 # {.tabset}
 
 ## 🔢 Table
 
 ```{r}
-# Your code here. You need to create a table with the following columns: Country, 2011, 2022, Absolute change, and Relative change. 
-# Use the filter function to select only the years 2011 and 2022. 
-# Use the pivot_wider function to create the columns for 2011 and 2022.
-# Use the mutate function to calculate the Absolute change and Relative change.
-# Use the reactable function to create the table.
+cantril %>% 
+  filter(Year %in% c(2011, 2022)) %>% 
+  pivot_wider(names_from = Year, values_from = `Cantril ladder score`, id_cols = Country) %>% 
+  select(Country, `2011`, `2022`) %>% 
+  mutate(`Absolute change` = round(`2022` - `2011`, 3)) %>% 
+  mutate(`Relative change` = (`2022` - `2011`) / `2011`) %>% 
+  reactable(
+    columns = list(`Relative change` = colDef(format = colFormat(percent = TRUE, digits = 1))) 
+  )
 ```
 
 ## 🌎 Map
 
 ```{r}
-# This code is already done for you. You don't need to change anything here. 
-# But if you change any of the column names, or something else with the data,
-# you may need to adjust the code below.
 cantril %>% 
   mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
   plot_geo(width = 940) %>% 
@@ -55,22 +67,73 @@ cantril %>%
 ## 📈 Chart
 
 ```{r}
-# Your code here. You need to create a line chart with the following features:
-# Select a few countries (e.g., Norway, Australia, Germany, Bolivia, Colombia, Bhutan).
-# Use ggplot to create the line chart.
-# Use geom_line to create the lines.
-# Use scale_y_continuous to set the y-axis limits.
-# Use labs to set the axis labels.
-# Use theme_minimal to set the theme.
-# Finally, use ggplotly to convert the ggplot chart to a plotly chart.
+# simple line chart of the data, for five countries on different continents (ggplot, piped into ggplotly)
+
+cantril_chart <- 
+  cantril %>% 
+  filter(Country %in% c("Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan")) %>%
+  ggplot(aes(x = Year, y = `Cantril ladder score`, color = Country)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = NULL,
+       y = NULL, 
+       color = NULL) +
+  theme_minimal() 
+
+ggplotly(cantril_chart, width = 940)
 ```
 
 ## Advanced (Optional) 📈
 
+The following chart demonstrates that it is possible to approximate the functionality of our World in Data grapher for multicountry selection using R, specifically with the `crosstalk` package and a small amount of custom JavaScript. For more information on how to achieve this, see [this Stack Overflow question](https://stackoverflow.com/questions/67058016/how-to-set-default-values-in-filter-select-in-crosstalk-in-r-plotly).
+
+Note that this is not a required task, but rather a showcase of what can be achieved. The code for this will be shared when we provide the solutions for the exercise.
+
 ```{r}
-# This code is optional. You can try to replicate the advanced chart from the example, but it's not required.
-# If you want to try, start by consulting the documentation below
-# This is pretty hard though, so don't worry if you can't get it to work.
-# https://rpubs.com/pcart/674445
-# https://stackoverflow.com/questions/67058016/how-to-set-default-values-in-filter-select-in-crosstalk-in-r-plotly
+pacman::p_load(crosstalk)
+
+
+# Crosstalk shared data
+shared_cantril <- highlight_key(cantril)
+
+cantril_plotly <- plot_ly(
+  shared_cantril, 
+  x = ~Year, 
+  y = ~`Cantril ladder score`, 
+  color = ~Country, 
+  type = "scatter", 
+  mode = "lines+markers"
+) %>%
+  layout(yaxis = list(range = c(0, 10)))
+
+
+country_filter <- filter_select(
+  "country_filter", 
+  "Select a country to examine", 
+  shared_cantril, 
+  ~Country, 
+  multiple = TRUE
+)
+
+bscols(
+  list(country_filter, cantril_plotly)
+)
 ```
+
+<script>
+function filter_default() {
+  var default_countries = ["Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan"]; // Set default countries here
+  document.getElementById("country_filter").getElementsByClassName("selectized")[0].selectize.setValue(default_countries, false);
+}
+window.onload = filter_default;
+</script>
+
+
+# {.unlisted}
+
+Data source: World Happiness Report
+
+[OurWorldInData.org/happiness-and-life-satisfaction](https://ourworldindata.org/grapher/happiness-cantril-ladder) | CC BY
+
+
+
