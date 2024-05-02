@@ -22,7 +22,7 @@ if(!require(pacman)) install.packages("pacman")
 pacman::p_load(plotly, tidyverse, reactable, here,janitor)
 ```
 
-```{r}
+```{r include = F}
 ## Import data
 happy_data <- 
   read_csv(here("data/happy_people.csv")) %>%
